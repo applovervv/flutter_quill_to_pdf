@@ -9,6 +9,7 @@ import 'package:pdf/widgets.dart' as pw;
 ///A Manager that contains all operations for PDF services
 class PdfService extends PdfConfigurator<Delta, pw.Document> {
   late final List<pw.Font> _fonts;
+
   //page configs
   late final double _marginLeft;
   late final double _marginBottom;
@@ -182,6 +183,22 @@ class PdfService extends PdfConfigurator<Delta, pw.Document> {
           break;
         }
       }
+
+      bool skip = false;
+
+      if (paragraph.type == ParagraphType.embed) {
+        for (Line line in paragraph.lines) {
+          if (line.attributes != null) {
+            final List<pw.InlineSpan> spans =
+                await getRichTextInlineStyles.call(line, defaultTextStyle);
+            _applyInlineParagraph(contentPerPage, spans);
+            skip = true;
+          }
+        }
+      }
+
+      if (skip) continue;
+
       if (goToNextParagraph) continue;
       verifyBlock(blockAttributes);
       //verify if paragraph is just a simple new line
